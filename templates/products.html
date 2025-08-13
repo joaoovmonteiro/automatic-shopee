@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Produtos - Sistema Automático Shopee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i class="fas fa-box me-2"></i>
+                Produtos
+            </h1>
+            <div class="btn-group">
+                <a href="{{ url_for('refresh_products') }}" class="btn btn-primary">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Atualizar da Shopee
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Categoria</label>
+                        <select name="category" class="form-select">
+                            <option value="">Todas as categorias</option>
+                            {% for category in categories %}
+                                <option value="{{ category }}" {% if current_category == category %}selected{% endif %}>
+                                    {{ category }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Buscar</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Digite o nome do produto..." 
+                               value="{{ current_search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>
+                                Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div class="row">
+    {% if products.items %}
+        {% for product in products.items %}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100">
+                    <div class="position-relative">
+                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
+                        {% if product.discount > 0 %}
+                            <span class="position-absolute top-0 start-0 badge bg-danger m-2">
+                                -{{ product.discount }}%
+                            </span>
+                        {% endif %}
+                        <div class="position-absolute top-0 end-0 m-2">
+                            <button class="btn btn-sm btn-{{ 'success' if product.is_active else 'secondary' }}" 
+                                    onclick="toggleProduct({{ product.id }})">
+                                <i class="fas fa-{{ 'eye' if product.is_active else 'eye-slash' }}"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body d-flex flex-column">
+                        <h6 class="card-title">{{ product.title[:50] }}{% if product.title|length > 50 %}...{% endif %}</h6>
+                        
+                        <div class="mb-2">
+                            <span class="badge bg-secondary">{{ product.category }}</span>
+                            <div class="mt-1">
+                                <i class="fas fa-star text-warning"></i>
+                                {{ product.rating }} 
+                                <small class="text-muted">({{ product.sold_count }} vendidos)</small>
+                            </div>
+                        </div>
+                        
+                        <div class="price-section mb-3">
+                            <div class="h5 mb-0 text-success">R$ {{ "%.2f"|format(product.price) }}</div>
+                            {% if product.original_price > product.price %}
+                                <small class="text-muted text-decoration-line-through">
+                                    R$ {{ "%.2f"|format(product.original_price) }}
+                                </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mt-auto">
+                            <div class="btn-group w-100">
+                                <button class="btn btn-primary btn-sm" onclick="postNow({{ product.id }})">
+                                    <i class="fas fa-share-alt me-1"></i>
+                                    Postar Agora
+                                </button>
+                                <a href="{{ product.affiliate_link }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+                <h4>Nenhum produto encontrado</h4>
+                <p class="text-muted">Não há produtos que correspondam aos filtros selecionados.</p>
+                <a href="{{ url_for('refresh_products') }}" class="btn btn-primary">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Carregar Produtos da Shopee
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if products.pages > 1 %}
+    <div class="row">
+        <div class="col-12">
+            <nav aria-label="Navegação de páginas">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('products', page=products.prev_num, category=current_category, search=current_search) }}">
+                                Anterior
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num != products.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('products', page=page_num, category=current_category, search=current_search) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('products', page=products.next_num, category=current_category, search=current_search) }}">
+                                Próximo
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleProduct(productId) {
+    fetch(`/api/toggle_product/${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao alterar produto: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Erro de conexão: ' + error);
+        });
+}
+
+function postNow(productId) {
+    if (confirm('Deseja criar posts para este produto em todas as redes sociais ativas?')) {
+        const btn = event.target.closest('button');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Postando...';
+        
+        fetch(`/api/post_now/${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Posts criados com sucesso!');
+                } else {
+                    alert('Erro ao criar posts: ' + data.message);
+                }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-share-alt me-1"></i>Postar Agora';
+            })
+            .catch(error => {
+                alert('Erro de conexão: ' + error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-share-alt me-1"></i>Postar Agora';
+            });
+    }
+}
+</script>
+{% endblock %}

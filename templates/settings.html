@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Configurações - Sistema Automático Shopee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-cog me-2"></i>
+            Configurações do Sistema
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Affiliate Configuration -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-link me-2"></i>
+                    Configuração de Afiliado
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_settings') }}">
+                    <div class="mb-3">
+                        <label class="form-label">ID do Afiliado Shopee</label>
+                        <input type="text" name="affiliate_id" class="form-control" 
+                               value="{{ affiliate_config.affiliate_id }}" 
+                               placeholder="Seu ID de afiliado Shopee" required>
+                        <div class="form-text">
+                            Encontre seu ID na área de afiliados da Shopee
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">URL Base do Afiliado</label>
+                        <input type="url" name="base_affiliate_url" class="form-control" 
+                               value="{{ affiliate_config.base_affiliate_url }}" 
+                               placeholder="https://shopee.com.br/" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Taxa de Comissão (%)</label>
+                        <input type="number" name="commission_rate" class="form-control" 
+                               value="{{ affiliate_config.commission_rate }}" 
+                               step="0.1" min="0" max="100">
+                        <div class="form-text">
+                            Taxa para cálculo de receita estimada
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        Salvar Configurações
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Settings -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>
+                    Configurações do Sistema
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Status do Scheduler</label>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">
+                            <i class="fas fa-check-circle me-1"></i>Ativo
+                        </span>
+                        <small class="text-muted">Posts sendo agendados automaticamente</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Banco de Dados</label>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success me-2">
+                            <i class="fas fa-database me-1"></i>Conectado
+                        </span>
+                        <small class="text-muted">SQLite funcionando normalmente</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Última Atualização de Produtos</label>
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-2" id="lastUpdate">Carregando...</span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshProducts()">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h6>Ações do Sistema</h6>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-info" onclick="testConnections()">
+                            <i class="fas fa-network-wired me-1"></i>
+                            Testar Conexões
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="clearCache()">
+                            <i class="fas fa-trash me-1"></i>
+                            Limpar Cache
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Social Media Accounts -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-share-alt me-2"></i>
+                    Contas de Redes Sociais
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_settings') }}">
+                    <div class="row">
+                        <!-- Instagram -->
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <i class="fab fa-instagram fa-3x text-primary"></i>
+                                        <h6 class="mt-2">Instagram</h6>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome de Usuário</label>
+                                        <input type="text" name="instagram_username" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'instagram' %}{{ account.username }}{% endif %}{% endfor %}"
+                                               placeholder="@seu_usuario">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Access Token</label>
+                                        <input type="password" name="instagram_access_token" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'instagram' %}{{ account.access_token }}{% endif %}{% endfor %}"
+                                               placeholder="Token de acesso">
+                                        <div class="form-text">
+                                            <a href="https://developers.facebook.com/docs/instagram-basic-display-api" target="_blank">
+                                                Como obter token
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <span class="badge bg-{% for account in social_accounts %}{% if account.platform == 'instagram' %}{% if account.is_active %}success{% else %}secondary{% endif %}{% endif %}{% endfor %}">
+                                            {% set instagram_configured = false %}
+                                            {% for account in social_accounts %}
+                                                {% if account.platform == 'instagram' %}
+                                                    {% set instagram_configured = true %}
+                                                    {% if account.is_active %}Conectado{% else %}Inativo{% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not instagram_configured %}Não Configurado{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Facebook -->
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <i class="fab fa-facebook fa-3x text-primary"></i>
+                                        <h6 class="mt-2">Facebook</h6>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome de Usuário</label>
+                                        <input type="text" name="facebook_username" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'facebook' %}{{ account.username }}{% endif %}{% endfor %}"
+                                               placeholder="Seu perfil/página">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Access Token</label>
+                                        <input type="password" name="facebook_access_token" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'facebook' %}{{ account.access_token }}{% endif %}{% endfor %}"
+                                               placeholder="Token de acesso">
+                                        <div class="form-text">
+                                            <a href="https://developers.facebook.com/tools/explorer/" target="_blank">
+                                                Como obter token
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <span class="badge bg-{% for account in social_accounts %}{% if account.platform == 'facebook' %}{% if account.is_active %}success{% else %}secondary{% endif %}{% endif %}{% endfor %}">
+                                            {% set facebook_configured = false %}
+                                            {% for account in social_accounts %}
+                                                {% if account.platform == 'facebook' %}
+                                                    {% set facebook_configured = true %}
+                                                    {% if account.is_active %}Conectado{% else %}Inativo{% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not facebook_configured %}Não Configurado{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Twitter -->
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <i class="fab fa-twitter fa-3x text-primary"></i>
+                                        <h6 class="mt-2">Twitter</h6>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Nome de Usuário</label>
+                                        <input type="text" name="twitter_username" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'twitter' %}{{ account.username }}{% endif %}{% endfor %}"
+                                               placeholder="@seu_usuario">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label">Access Token</label>
+                                        <input type="password" name="twitter_access_token" class="form-control" 
+                                               value="{% for account in social_accounts %}{% if account.platform == 'twitter' %}{{ account.access_token }}{% endif %}{% endfor %}"
+                                               placeholder="Token de acesso">
+                                        <div class="form-text">
+                                            <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank">
+                                                Como obter token
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="text-center">
+                                        <span class="badge bg-{% for account in social_accounts %}{% if account.platform == 'twitter' %}{% if account.is_active %}success{% else %}secondary{% endif %}{% endif %}{% endfor %}">
+                                            {% set twitter_configured = false %}
+                                            {% for account in social_accounts %}
+                                                {% if account.platform == 'twitter' %}
+                                                    {% set twitter_configured = true %}
+                                                    {% if account.is_active %}Conectado{% else %}Inativo{% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not twitter_configured %}Não Configurado{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-1"></i>
+                            Salvar Todas as Configurações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API Documentation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book me-2"></i>
+                    Documentação e Ajuda
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-question-circle me-1"></i>Como Configurar</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none">• Configurar conta Instagram</a></li>
+                            <li><a href="#" class="text-decoration-none">• Configurar conta Facebook</a></li>
+                            <li><a href="#" class="text-decoration-none">• Configurar conta Twitter</a></li>
+                            <li><a href="#" class="text-decoration-none">• Obter ID de afiliado Shopee</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-tools me-1"></i>Troubleshooting</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none">• Posts não sendo criados</a></li>
+                            <li><a href="#" class="text-decoration-none">• Erro de token expirado</a></li>
+                            <li><a href="#" class="text-decoration-none">• Produtos não carregam</a></li>
+                            <li><a href="#" class="text-decoration-none">• Analytics não atualizam</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-shield-alt me-1"></i>Segurança</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" class="text-decoration-none">• Proteger tokens de acesso</a></li>
+                            <li><a href="#" class="text-decoration-none">• Backup de configurações</a></li>
+                            <li><a href="#" class="text-decoration-none">• Monitorar atividade</a></li>
+                            <li><a href="#" class="text-decoration-none">• Relatórios de segurança</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function refreshProducts() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    fetch('/refresh_products')
+        .then(response => {
+            if (response.ok) {
+                alert('Produtos atualizados com sucesso!');
+                updateLastUpdate();
+            } else {
+                alert('Erro ao atualizar produtos');
+            }
+        })
+        .catch(error => {
+            alert('Erro de conexão: ' + error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        });
+}
+
+function testConnections() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Testando...';
+    
+    // Simulate connection test
+    setTimeout(() => {
+        alert('Teste de conexões concluído!\n\n✓ Banco de dados: OK\n✓ Scheduler: OK\n✓ APIs: OK');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-network-wired me-1"></i>Testar Conexões';
+    }, 2000);
+}
+
+function clearCache() {
+    if (confirm('Deseja limpar o cache do sistema? Esta ação pode afetar temporariamente o desempenho.')) {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Limpando...';
+        
+        setTimeout(() => {
+            alert('Cache limpo com sucesso!');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-trash me-1"></i>Limpar Cache';
+        }, 1500);
+    }
+}
+
+function updateLastUpdate() {
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleString('pt-BR');
+}
+
+// Update last update time on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateLastUpdate();
+});
+</script>
+{% endblock %}

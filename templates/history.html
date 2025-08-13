@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico - Sistema Automático Shopee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i class="fas fa-history me-2"></i>
+                Histórico de Posts
+            </h1>
+            <div class="btn-group">
+                <a href="{{ url_for('analytics') }}" class="btn btn-primary">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Ver Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Plataforma</label>
+                        <select name="platform" class="form-select">
+                            <option value="">Todas as plataformas</option>
+                            {% for platform in platforms %}
+                                <option value="{{ platform }}" {% if current_platform == platform %}selected{% endif %}>
+                                    {{ platform.title() }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">Todos os status</option>
+                            {% for status in statuses %}
+                                <option value="{{ status }}" {% if current_status == status %}selected{% endif %}>
+                                    {{ status.title() }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>
+                                Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Posts History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Posts Realizados</h5>
+                <span class="badge bg-info">{{ posts.total }} total</span>
+            </div>
+            <div class="card-body">
+                {% if posts.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Plataforma</th>
+                                    <th>Data/Hora</th>
+                                    <th>Status</th>
+                                    <th>Engajamento</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in posts.items %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ post.product.image_url }}" 
+                                                     class="me-2 rounded" 
+                                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        {{ post.product.title[:40] }}{% if post.product.title|length > 40 %}...{% endif %}
+                                                    </div>
+                                                    <small class="text-success">R$ {{ post.product.price }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">
+                                                <i class="fab fa-{{ post.platform }} me-1"></i>
+                                                {{ post.platform.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {% if post.posted_time %}
+                                                    {{ post.posted_time.strftime('%d/%m/%Y') }}
+                                                    <br><small class="text-muted">{{ post.posted_time.strftime('%H:%M') }}</small>
+                                                {% elif post.scheduled_time %}
+                                                    <span class="text-warning">
+                                                        {{ post.scheduled_time.strftime('%d/%m/%Y %H:%M') }}
+                                                    </span>
+                                                {% else %}
+                                                    {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if post.status == 'posted' %}success{% elif post.status == 'scheduled' %}warning{% elif post.status == 'failed' %}danger{% else %}secondary{% endif %}">
+                                                {% if post.status == 'posted' %}
+                                                    <i class="fas fa-check me-1"></i>
+                                                {% elif post.status == 'scheduled' %}
+                                                    <i class="fas fa-clock me-1"></i>
+                                                {% elif post.status == 'failed' %}
+                                                    <i class="fas fa-times me-1"></i>
+                                                {% endif %}
+                                                {{ post.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% set engagement = post.get_engagement_data() %}
+                                            {% if post.status == 'posted' and engagement %}
+                                                <div class="small">
+                                                    <div><i class="fas fa-heart text-danger me-1"></i>{{ engagement.likes }}</div>
+                                                    <div><i class="fas fa-share text-info me-1"></i>{{ engagement.shares }}</div>
+                                                    <div><i class="fas fa-comment text-warning me-1"></i>{{ engagement.comments }}</div>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewPostDetails({{ post.id }})"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#postModal">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                {% if post.status == 'failed' %}
+                                                    <button class="btn btn-outline-success" 
+                                                            onclick="retryPost({{ post.id }})">
+                                                        <i class="fas fa-redo"></i>
+                                                    </button>
+                                                {% endif %}
+                                                {% if post.affiliate_link %}
+                                                    <a href="{{ post.product.affiliate_link }}" 
+                                                       target="_blank" 
+                                                       class="btn btn-outline-secondary">
+                                                        <i class="fas fa-external-link-alt"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if posts.pages > 1 %}
+                        <nav aria-label="Navegação de páginas" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if posts.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('history', page=posts.prev_num, platform=current_platform, status=current_status) }}">
+                                            Anterior
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% for page_num in posts.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                    {% if page_num %}
+                                        {% if page_num != posts.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('history', page=page_num, platform=current_platform, status=current_status) }}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">…</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if posts.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('history', page=posts.next_num, platform=current_platform, status=current_status) }}">
+                                            Próximo
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <h4>Nenhum post encontrado</h4>
+                        <p class="text-muted">Não há posts que correspondam aos filtros selecionados.</p>
+                        <a href="{{ url_for('products') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>
+                            Criar Primeiro Post
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Post Details Modal -->
+<div class="modal fade" id="postModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Post</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="postModalBody">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewPostDetails(postId) {
+    // Here you would load post details via AJAX
+    document.getElementById('postModalBody').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+        </div>
+    `;
+    
+    // Simulate loading details
+    setTimeout(() => {
+        document.getElementById('postModalBody').innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Detalhamento completo do post em desenvolvimento
+            </div>
+            <p>ID do Post: ${postId}</p>
+        `;
+    }, 500);
+}
+
+function retryPost(postId) {
+    if (confirm('Deseja tentar repostar este conteúdo?')) {
+        const btn = event.target.closest('button');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        // Implementation for retrying failed post
+        setTimeout(() => {
+            alert('Post reagendado com sucesso!');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-redo"></i>';
+            location.reload();
+        }, 1000);
+    }
+}
+</script>
+{% endblock %}

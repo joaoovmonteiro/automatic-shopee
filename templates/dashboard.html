@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema Automático Shopee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Dashboard
+            </h1>
+            <div class="btn-group">
+                <a href="{{ url_for('refresh_products') }}" class="btn btn-primary">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Atualizar Produtos
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Produtos Ativos</h6>
+                        <h2 class="mb-0">{{ total_products }}</h2>
+                    </div>
+                    <i class="fas fa-box fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Posts Hoje</h6>
+                        <h2 class="mb-0">{{ today_stats.posts }}</h2>
+                    </div>
+                    <i class="fas fa-share-alt fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Engajamento Hoje</h6>
+                        <h2 class="mb-0">{{ today_stats.likes + today_stats.shares }}</h2>
+                    </div>
+                    <i class="fas fa-heart fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Posts Agendados</h6>
+                        <h2 class="mb-0">{{ scheduled_posts }}</h2>
+                    </div>
+                    <i class="fas fa-calendar fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Posts -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Posts Recentes
+                </h5>
+                <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-primary">
+                    Ver Todos
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_posts %}
+                    <div class="list-group list-group-flush">
+                        {% for post in recent_posts %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="me-auto">
+                                    <div class="fw-bold">
+                                        {{ post.product.title[:60] }}{% if post.product.title|length > 60 %}...{% endif %}
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="fab fa-{{ post.platform }} me-1"></i>
+                                        {{ post.platform.title() }} •
+                                        {% if post.posted_time %}
+                                            {{ post.posted_time.strftime('%d/%m %H:%M') }}
+                                        {% else %}
+                                            {{ post.created_at.strftime('%d/%m %H:%M') }}
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{% if post.status == 'posted' %}success{% elif post.status == 'scheduled' %}warning{% else %}danger{% endif %}">
+                                    {{ post.status.title() }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum post encontrado</p>
+                        <a href="{{ url_for('products') }}" class="btn btn-primary">
+                            Ver Produtos
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Ações Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('products') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-box me-2"></i>
+                        Gerenciar Produtos
+                    </a>
+                    
+                    <a href="{{ url_for('schedule') }}" class="btn btn-outline-success">
+                        <i class="fas fa-calendar-plus me-2"></i>
+                        Configurar Agendamento
+                    </a>
+                    
+                    <a href="{{ url_for('analytics') }}" class="btn btn-outline-info">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Ver Analytics
+                    </a>
+                    
+                    <a href="{{ url_for('settings') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-cog me-2"></i>
+                        Configurações
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Status -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-server me-2"></i>
+                    Status do Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="text-success">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                            <small>Scheduler</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center">
+                            <div class="text-success">
+                                <i class="fas fa-database fa-2x"></i>
+                            </div>
+                            <small>Banco de Dados</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform Status -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-share-alt me-2"></i>
+                    Status das Plataformas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fab fa-instagram fa-3x text-primary mb-2"></i>
+                            <h6>Instagram</h6>
+                            <span class="badge bg-success">Ativo</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fab fa-facebook fa-3x text-primary mb-2"></i>
+                            <h6>Facebook</h6>
+                            <span class="badge bg-success">Ativo</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 border rounded">
+                            <i class="fab fa-twitter fa-3x text-primary mb-2"></i>
+                            <h6>Twitter</h6>
+                            <span class="badge bg-success">Ativo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

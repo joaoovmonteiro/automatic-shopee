@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}Agendamento - Sistema Automático Shopee{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="h3 mb-4">
+            <i class="fas fa-calendar-alt me-2"></i>
+            Agendamento de Posts
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Schedule Configuration -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-cog me-2"></i>
+                    Configuração de Agendamento
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('update_schedule') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Plataforma</label>
+                        <select name="platform" class="form-select" id="platformSelect" required>
+                            <option value="">Selecione uma plataforma</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="twitter">Twitter</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Intervalo entre Posts (horas)</label>
+                        <select name="interval_hours" class="form-select">
+                            <option value="1">1 hora</option>
+                            <option value="2">2 horas</option>
+                            <option value="4">4 horas</option>
+                            <option value="6" selected>6 horas</option>
+                            <option value="8">8 horas</option>
+                            <option value="12">12 horas</option>
+                            <option value="24">24 horas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Máximo de Posts por Dia</label>
+                        <input type="number" name="max_posts_per_day" class="form-control" 
+                               value="4" min="1" max="20" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Horários Preferenciais</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="time" name="posting_times[]" class="form-control" value="09:00">
+                            </div>
+                            <div class="col-6">
+                                <input type="time" name="posting_times[]" class="form-control" value="14:00">
+                            </div>
+                            <div class="col-6">
+                                <input type="time" name="posting_times[]" class="form-control" value="18:00">
+                            </div>
+                            <div class="col-6">
+                                <input type="time" name="posting_times[]" class="form-control" value="21:00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>
+                        Salvar Configuração
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Current Schedules -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock me-2"></i>
+                    Configurações Atuais
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if schedules %}
+                    <div class="list-group list-group-flush">
+                        {% for schedule in schedules %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="me-auto">
+                                    <div class="fw-bold text-capitalize">
+                                        <i class="fab fa-{{ schedule.platform }} me-1"></i>
+                                        {{ schedule.platform }}
+                                    </div>
+                                    <small class="text-muted">
+                                        A cada {{ schedule.interval_hours }}h • 
+                                        Máx: {{ schedule.max_posts_per_day }} posts/dia
+                                    </small>
+                                </div>
+                                <span class="badge bg-{% if schedule.is_active %}success{% else %}secondary{% endif %}">
+                                    {% if schedule.is_active %}Ativo{% else %}Inativo{% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum agendamento configurado</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Platform Status -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-share-alt me-2"></i>
+                    Status das Plataformas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-2">
+                    <div class="col-4 text-center">
+                        <i class="fab fa-instagram fa-2x text-primary mb-1"></i>
+                        <div><small>Instagram</small></div>
+                        <span class="badge bg-success">Ativo</span>
+                    </div>
+                    <div class="col-4 text-center">
+                        <i class="fab fa-facebook fa-2x text-primary mb-1"></i>
+                        <div><small>Facebook</small></div>
+                        <span class="badge bg-success">Ativo</span>
+                    </div>
+                    <div class="col-4 text-center">
+                        <i class="fab fa-twitter fa-2x text-primary mb-1"></i>
+                        <div><small>Twitter</small></div>
+                        <span class="badge bg-success">Ativo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scheduled Posts -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>
+                    Posts Agendados
+                </h5>
+                <span class="badge bg-info">{{ scheduled_posts|length }} agendados</span>
+            </div>
+            <div class="card-body">
+                {% if scheduled_posts %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Plataforma</th>
+                                    <th>Data/Hora</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in scheduled_posts %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ post.product.image_url }}" 
+                                                     class="me-2 rounded" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                                <div>
+                                                    <div class="fw-bold">
+                                                        {{ post.product.title[:30] }}{% if post.product.title|length > 30 %}...{% endif %}
+                                                    </div>
+                                                    <small class="text-muted">R$ {{ post.product.price }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <i class="fab fa-{{ post.platform }} me-1"></i>
+                                            {{ post.platform.title() }}
+                                        </td>
+                                        <td>
+                                            {% if post.scheduled_time %}
+                                                {{ post.scheduled_time.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Não definido</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ post.status.title() }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button class="btn btn-outline-primary" 
+                                                        onclick="viewPost({{ post.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger" 
+                                                        onclick="cancelPost({{ post.id }})">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum post agendado no momento</p>
+                        <p class="small text-muted">
+                            Os posts são agendados automaticamente com base nas configurações acima
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewPost(postId) {
+    // Implementation for viewing post details
+    alert('Funcionalidade de visualização em desenvolvimento');
+}
+
+function cancelPost(postId) {
+    if (confirm('Deseja cancelar este post agendado?')) {
+        // Implementation for canceling post
+        alert('Funcionalidade de cancelamento em desenvolvimento');
+    }
+}
+
+// Load current configuration when platform is selected
+document.getElementById('platformSelect').addEventListener('change', function() {
+    const platform = this.value;
+    if (platform) {
+        // Here you could load current configuration for the selected platform
+        // via AJAX and populate the form fields
+    }
+});
+</script>
+{% endblock %}
