@@ -34,29 +34,78 @@ Este é um sistema completo de marketing de afiliados automatizado para produtos
 - **Persistência**: Jobs de agendamento sobrevivem a reinicializações
 - **Rate Limiting**: Respeita limites das APIs das redes sociais
 
-## 🚀 Como Usar
+## 🚀 Como Iniciar o Projeto
 
-### 1. Configuração Inicial
+### Método 1: No Replit (Recomendado)
+
+#### Passo 1: Abrir o Projeto
+1. Abra o projeto no Replit
+2. Aguarde o carregamento completo do ambiente
+
+#### Passo 2: Iniciar a Aplicação
+1. Clique no botão **"Run"** ou execute:
+   ```bash
+   # O comando já está configurado no workflow
+   gunicorn --bind 0.0.0.0:5000 --reuse-port --reload main:app
+   ```
+2. Aguarde a mensagem "Listening at: http://0.0.0.0:5000"
+3. Clique no link que aparece ou acesse via preview do Replit
+
+#### Passo 3: Verificar o Funcionamento
+1. O dashboard deve carregar automaticamente
+2. Você verá a interface do Sistema Automático Shopee
+3. O banco PostgreSQL será criado automaticamente
+
+### Método 2: Instalação Local
 
 #### Requisitos
 - Python 3.11+
-- PostgreSQL
+- PostgreSQL instalado e rodando
 - Conexão com internet
 
-#### Instalação
+#### Passo 1: Clonar e Configurar
 ```bash
 # Clone o repositório
 git clone <repository-url>
 cd shopee-affiliate-system
 
-# Instale as dependências (automático no Replit)
-# As dependências estão listadas no pyproject.toml
+# Instale as dependências
+pip install -r requirements.txt
+# ou se usando uv:
+uv install
 ```
 
-#### Variáveis de Ambiente
-O sistema usa as seguintes variáveis (já configuradas no Replit):
-- `DATABASE_URL`: URL do banco PostgreSQL
-- `SESSION_SECRET`: Chave secreta para sessões
+#### Passo 2: Configurar Banco de Dados
+```bash
+# Configure a variável DATABASE_URL
+export DATABASE_URL="postgresql://user:password@localhost/shopee_db"
+
+# Configure a chave de sessão
+export SESSION_SECRET="sua-chave-secreta-super-segura"
+```
+
+#### Passo 3: Inicializar a Aplicação
+```bash
+# Iniciar o servidor
+python main.py
+# ou usando gunicorn:
+gunicorn --bind 0.0.0.0:5000 --reload main:app
+```
+
+#### Passo 4: Acessar a Aplicação
+- Abra seu navegador em: `http://localhost:5000`
+- O sistema criará as tabelas automaticamente na primeira execução
+
+### Variáveis de Ambiente
+O sistema usa as seguintes variáveis:
+- `DATABASE_URL`: URL do banco PostgreSQL (configurada automaticamente no Replit)
+- `SESSION_SECRET`: Chave secreta para sessões (configurada automaticamente no Replit)
+
+### Verificação da Instalação
+Após iniciar, você deve ver:
+1. **Console**: Mensagens de "Scheduler started successfully"
+2. **Browser**: Dashboard com estatísticas zeradas (normal na primeira execução)
+3. **Banco**: Tabelas criadas automaticamente (Product, Post, Analytics, etc.)
 
 ### 2. Configuração das Redes Sociais
 
@@ -193,9 +242,10 @@ O sistema busca novos produtos automaticamente baseado nas configurações de ag
 3. Verifique os logs do scheduler no console
 
 #### Imagens não carregam:
-1. As imagens vêm do Unsplash e podem demorar para carregar
+1. As imagens vêm do Unsplash via CDN - podem demorar alguns segundos
 2. Verifique a conexão com internet
-3. Tente atualizar os produtos
+3. Tente atualizar os produtos clicando em "Atualizar da Shopee"
+4. Se persistir, o sistema tem fallback automático para imagens placeholder
 
 #### Analytics não mostram dados:
 1. Aguarde pelo menos 24h após configurar o sistema

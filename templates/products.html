@@ -68,8 +68,9 @@
                         <img src="{{ product.image_url }}" 
                              class="card-img-top" 
                              alt="{{ product.title }}" 
-                             style="height: 200px; object-fit: cover;"
-                             onerror="this.src='https://via.placeholder.com/300x300/6c757d/ffffff?text=Produto'">
+                             style="height: 200px; object-fit: cover; border-radius: 0.375rem 0.375rem 0 0;"
+                             onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop&crop=center';"
+                             loading="lazy">
                         {% if product.discount > 0 %}
                             <span class="position-absolute top-0 start-0 badge bg-danger m-2">
                                 -{{ product.discount }}%

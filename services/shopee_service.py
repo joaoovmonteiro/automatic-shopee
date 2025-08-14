@@ -163,28 +163,51 @@ class ShopeeService:
             return 0
     
     def get_product_image_url(self, category, product_num):
-        """Generate realistic product image URLs based on category"""
-        # Use Picsum with category-based seed for consistent, reliable images
-        category_seeds = {
-            'Eletrônicos': [100, 150, 200, 250, 300],
-            'Moda Feminina': [400, 450, 500, 550, 600],
-            'Moda Masculina': [650, 700, 750, 800, 850],
-            'Casa e Jardim': [900, 950, 1000, 1050, 1100],
-            'Beleza e Cuidados': [1150, 1200, 1250, 1300, 1350],
-            'Esportes': [1400, 1450, 1500, 1550, 1600],
-            'Livros e Hobbies': [1650, 1700, 1750, 1800, 1850],
-            'Brinquedos': [1900, 1950, 2000, 2050, 2100],
-            'Automóveis': [2150, 2200, 2250, 2300, 2350],
-            'Saúde': [2400, 2450, 2500, 2550, 2600],
-            'Comida e Bebidas': [2650, 2700, 2750, 2800, 2850],
-            'Pets': [2900, 2950, 3000, 3050, 3100]
+        """Generate reliable product image URLs based on category"""
+        # Use multiple image sources for better reliability
+        category_images = {
+            'Eletrônicos': [
+                'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=300&h=300&fit=crop&crop=center'
+            ],
+            'Moda Feminina': [
+                'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop&crop=center'
+            ],
+            'Moda Masculina': [
+                'https://images.unsplash.com/photo-1603252109612-ffd69d493909?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=300&h=300&fit=crop&crop=center'
+            ],
+            'Casa e Jardim': [
+                'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1564078516393-cf04bd966897?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1558618047-3c8c76ca7f09?w=300&h=300&fit=crop&crop=center'
+            ],
+            'Beleza e Cuidados': [
+                'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1487522794836-2dd7a3bb4fd7?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&crop=center'
+            ]
         }
         
-        seeds = category_seeds.get(category, [500])
-        seed = random.choice(seeds) + (product_num % 50)
+        # Get category specific images or use default electronics images
+        images = category_images.get(category, category_images['Eletrônicos'])
+        selected_image = images[product_num % len(images)]
         
-        # Use Picsum for reliable image loading
-        return f"https://picsum.photos/seed/{seed}/300/300"
+        return selected_image
     
     def get_products_by_category(self, category, limit=10):
         """Get products by category"""

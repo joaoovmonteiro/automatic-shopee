@@ -7,6 +7,14 @@ This is a comprehensive affiliate marketing automation system for Shopee product
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Language: Portuguese (Brasil)
+
+## Recent Changes
+
+- **2025-08-14**: Migrated from Replit Agent to Replit environment
+- **2025-08-14**: Fixed image loading issues for Shopee products using reliable Unsplash URLs
+- **2025-08-14**: Updated README with comprehensive project startup instructions
+- **2025-08-14**: Improved product image fallback system with better error handling
 
 ## System Architecture
 
