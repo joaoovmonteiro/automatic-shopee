@@ -115,7 +115,8 @@ def update_schedule():
         
         schedule = ScheduleConfig.query.filter_by(platform=platform).first()
         if not schedule:
-            schedule = ScheduleConfig(platform=platform)
+            schedule = ScheduleConfig()
+            schedule.platform = platform
             db.session.add(schedule)
         
         schedule.interval_hours = interval_hours
@@ -195,11 +196,10 @@ def settings():
     affiliate_config = AffiliateConfig.query.first()
     
     if not affiliate_config:
-        affiliate_config = AffiliateConfig(
-            affiliate_id='',
-            base_affiliate_url='https://shopee.com.br/',
-            commission_rate=5.0
-        )
+        affiliate_config = AffiliateConfig()
+        affiliate_config.affiliate_id = ''
+        affiliate_config.base_affiliate_url = 'https://shopee.com.br/'
+        affiliate_config.commission_rate = 5.0
     
     return render_template('settings.html', 
                          social_accounts=social_accounts,
@@ -232,7 +232,8 @@ def update_settings():
             if username and access_token:
                 account = SocialMediaAccount.query.filter_by(platform=platform).first()
                 if not account:
-                    account = SocialMediaAccount(platform=platform)
+                    account = SocialMediaAccount()
+                    account.platform = platform
                     db.session.add(account)
                 
                 account.username = username
@@ -288,9 +289,19 @@ def toggle_product(product_id):
 
 @app.errorhandler(404)
 def not_found_error(error):
-    return render_template('dashboard.html'), 404
+    return render_template('dashboard.html',
+                         total_products=0,
+                         total_posts=0,
+                         recent_posts=[],
+                         today_stats={'posts': 0, 'likes': 0, 'shares': 0, 'clicks': 0},
+                         scheduled_posts=0), 404
 
 @app.errorhandler(500)
 def internal_error(error):
     db.session.rollback()
-    return render_template('dashboard.html'), 500
+    return render_template('dashboard.html',
+                         total_products=0,
+                         total_posts=0,
+                         recent_posts=[],
+                         today_stats={'posts': 0, 'likes': 0, 'shares': 0, 'clicks': 0},
+                         scheduled_posts=0), 500

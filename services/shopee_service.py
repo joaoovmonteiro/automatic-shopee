@@ -100,7 +100,7 @@ class ShopeeService:
                     'category': template['category'],
                     'rating': round(random.uniform(4.0, 5.0), 1),
                     'sold_count': random.randint(100, 5000),
-                    'image_url': f"https://via.placeholder.com/300x300/4CAF50/FFFFFF?text=Produto+{i+1}",
+                    'image_url': self.get_product_image_url(template['category'], i+1),
                     'product_url': f"https://shopee.com.br/product/{shopee_id}",
                     'affiliate_link': self.generate_affiliate_link(shopee_id)
                 }
@@ -161,6 +161,30 @@ class ShopeeService:
             logger.error(f"Error updating affiliate links: {e}")
             db.session.rollback()
             return 0
+    
+    def get_product_image_url(self, category, product_num):
+        """Generate realistic product image URLs based on category"""
+        # Map categories to Unsplash search terms for better product images
+        category_map = {
+            'Eletrônicos': ['electronics', 'gadgets', 'smartphone', 'headphones', 'smartwatch'],
+            'Moda Feminina': ['fashion-woman', 'dress', 'clothing', 'style'],
+            'Moda Masculina': ['fashion-man', 'mens-clothing', 'shoes', 'style'],
+            'Casa e Jardim': ['home', 'kitchen', 'furniture', 'garden'],
+            'Beleza e Cuidados': ['skincare', 'beauty', 'cosmetics', 'health'],
+            'Esportes': ['sports', 'fitness', 'exercise', 'athletic'],
+            'Livros e Hobbies': ['books', 'reading', 'hobby', 'crafts'],
+            'Brinquedos': ['toys', 'kids', 'children', 'games'],
+            'Automóveis': ['car', 'automotive', 'vehicle', 'auto'],
+            'Saúde': ['health', 'wellness', 'medical', 'vitamins'],
+            'Comida e Bebidas': ['food', 'drink', 'beverage', 'snacks'],
+            'Pets': ['pets', 'dogs', 'cats', 'animals']
+        }
+        
+        search_terms = category_map.get(category, ['product'])
+        search_term = random.choice(search_terms)
+        
+        # Use Unsplash for realistic product images
+        return f"https://source.unsplash.com/300x300/?{search_term}&sig={product_num}"
     
     def get_products_by_category(self, category, limit=10):
         """Get products by category"""
