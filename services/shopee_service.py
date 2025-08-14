@@ -89,10 +89,11 @@ class ShopeeService:
                 original_price = template['base_price'] + random.uniform(-20, 50)
                 price = original_price * (1 - discount / 100)
                 
-                # Generate product data
+                # Generate product data with better image matching
+                title = f"{template['title']} - Modelo {i+1}"
                 product_data = {
                     'shopee_id': shopee_id,
-                    'title': f"{template['title']} - Modelo {i+1}",
+                    'title': title,
                     'description': template['description'],
                     'price': round(price, 2),
                     'original_price': round(original_price, 2),
@@ -100,7 +101,7 @@ class ShopeeService:
                     'category': template['category'],
                     'rating': round(random.uniform(4.0, 5.0), 1),
                     'sold_count': random.randint(100, 5000),
-                    'image_url': self.get_product_image_url(template['category'], i+1),
+                    'image_url': self.get_product_specific_image(title, template['category'], i+1),
                     'product_url': f"https://shopee.com.br/product/{shopee_id}",
                     'affiliate_link': f"https://shopee.com.br/product/{shopee_id}?af=affiliate&ref=partner"
                 }
@@ -163,51 +164,89 @@ class ShopeeService:
             return 0
     
     def get_product_image_url(self, category, product_num):
-        """Generate reliable product image URLs based on category"""
-        # Use multiple image sources for better reliability
+        """Generate product-specific image URLs that match the product type"""
+        # Map products to specific matching images based on title keywords
+        product_specific_images = {
+            'smartwatch': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center',
+            'fone': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&crop=center',
+            'tenis': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop&crop=center',
+            'vestido': 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop&crop=center',
+            'blusa': 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop&crop=center',
+            'panela': 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop&crop=center',
+            'skincare': 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&crop=center',
+            'suporte': 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=300&fit=crop&crop=center'
+        }
+        
+        # Category-specific fallback images
         category_images = {
             'Eletrônicos': [
                 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=300&h=300&fit=crop&crop=center'
+                'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center'
             ],
             'Moda Feminina': [
-                'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop&crop=center'
+                'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=300&h=300&fit=crop&crop=center'
             ],
             'Moda Masculina': [
+                'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1603252109612-ffd69d493909?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?w=300&h=300&fit=crop&crop=center'
+                'https://images.unsplash.com/photo-1618886614638-80e3c103d31a?w=300&h=300&fit=crop&crop=center'
             ],
             'Casa e Jardim': [
+                'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1567016432779-094069958ea5?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1564078516393-cf04bd966897?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1558618047-3c8c76ca7f09?w=300&h=300&fit=crop&crop=center'
+                'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=300&fit=crop&crop=center'
             ],
             'Beleza e Cuidados': [
+                'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop&crop=center'
+            ],
+            'Esportes': [
+                'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop&crop=center',
                 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1487522794836-2dd7a3bb4fd7?w=300&h=300&fit=crop&crop=center',
-                'https://images.unsplash.com/photo-1576426863848-c21f53c60b19?w=300&h=300&fit=crop&crop=center'
+                'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=300&h=300&fit=crop&crop=center',
+                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center'
             ]
         }
         
-        # Get category specific images or use default electronics images
+        # Get category specific images
         images = category_images.get(category, category_images['Eletrônicos'])
         selected_image = images[product_num % len(images)]
         
         return selected_image
+    
+    def get_product_specific_image(self, title, category, product_num):
+        """Get product-specific image based on title keywords"""
+        title_lower = title.lower()
+        
+        # Map specific products to appropriate images
+        if 'smartwatch' in title_lower or 'relógio' in title_lower:
+            return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&h=300&fit=crop&crop=center'
+        elif 'fone' in title_lower or 'headphone' in title_lower:
+            return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&crop=center'
+        elif 'tênis' in title_lower or 'sapato' in title_lower:
+            return 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop&crop=center'
+        elif 'vestido' in title_lower:
+            return 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop&crop=center'
+        elif 'blusa' in title_lower or 'camisa' in title_lower:
+            return 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=300&h=300&fit=crop&crop=center'
+        elif 'panela' in title_lower or 'cozinha' in title_lower:
+            return 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=300&fit=crop&crop=center'
+        elif 'skincare' in title_lower or 'beleza' in title_lower:
+            return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop&crop=center'
+        elif 'suporte' in title_lower or 'notebook' in title_lower:
+            return 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300&h=300&fit=crop&crop=center'
+        else:
+            # Fall back to category-based images
+            return self.get_product_image_url(category, product_num)
     
     def get_products_by_category(self, category, limit=10):
         """Get products by category"""
