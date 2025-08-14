@@ -7,6 +7,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 import atexit
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -32,6 +33,11 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Initialize the app with the extension
 db.init_app(app)
+
+# Register custom Jinja filter for JSON conversion
+@app.template_filter('tojsonfilter')
+def to_json_filter(obj):
+    return json.dumps(obj)
 
 # Configure scheduler with database jobstore
 jobstores = {
