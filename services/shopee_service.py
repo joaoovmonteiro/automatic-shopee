@@ -164,27 +164,27 @@ class ShopeeService:
     
     def get_product_image_url(self, category, product_num):
         """Generate realistic product image URLs based on category"""
-        # Map categories to Unsplash search terms for better product images
-        category_map = {
-            'Eletrônicos': ['electronics', 'gadgets', 'smartphone', 'headphones', 'smartwatch'],
-            'Moda Feminina': ['fashion-woman', 'dress', 'clothing', 'style'],
-            'Moda Masculina': ['fashion-man', 'mens-clothing', 'shoes', 'style'],
-            'Casa e Jardim': ['home', 'kitchen', 'furniture', 'garden'],
-            'Beleza e Cuidados': ['skincare', 'beauty', 'cosmetics', 'health'],
-            'Esportes': ['sports', 'fitness', 'exercise', 'athletic'],
-            'Livros e Hobbies': ['books', 'reading', 'hobby', 'crafts'],
-            'Brinquedos': ['toys', 'kids', 'children', 'games'],
-            'Automóveis': ['car', 'automotive', 'vehicle', 'auto'],
-            'Saúde': ['health', 'wellness', 'medical', 'vitamins'],
-            'Comida e Bebidas': ['food', 'drink', 'beverage', 'snacks'],
-            'Pets': ['pets', 'dogs', 'cats', 'animals']
+        # Use Picsum with category-based seed for consistent, reliable images
+        category_seeds = {
+            'Eletrônicos': [100, 150, 200, 250, 300],
+            'Moda Feminina': [400, 450, 500, 550, 600],
+            'Moda Masculina': [650, 700, 750, 800, 850],
+            'Casa e Jardim': [900, 950, 1000, 1050, 1100],
+            'Beleza e Cuidados': [1150, 1200, 1250, 1300, 1350],
+            'Esportes': [1400, 1450, 1500, 1550, 1600],
+            'Livros e Hobbies': [1650, 1700, 1750, 1800, 1850],
+            'Brinquedos': [1900, 1950, 2000, 2050, 2100],
+            'Automóveis': [2150, 2200, 2250, 2300, 2350],
+            'Saúde': [2400, 2450, 2500, 2550, 2600],
+            'Comida e Bebidas': [2650, 2700, 2750, 2800, 2850],
+            'Pets': [2900, 2950, 3000, 3050, 3100]
         }
         
-        search_terms = category_map.get(category, ['product'])
-        search_term = random.choice(search_terms)
+        seeds = category_seeds.get(category, [500])
+        seed = random.choice(seeds) + (product_num % 50)
         
-        # Use Unsplash for realistic product images
-        return f"https://source.unsplash.com/300x300/?{search_term}&sig={product_num}"
+        # Use Picsum for reliable image loading
+        return f"https://picsum.photos/seed/{seed}/300/300"
     
     def get_products_by_category(self, category, limit=10):
         """Get products by category"""

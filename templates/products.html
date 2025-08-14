@@ -65,7 +65,11 @@
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                 <div class="card h-100">
                     <div class="position-relative">
-                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.title }}" style="height: 200px; object-fit: cover;">
+                        <img src="{{ product.image_url }}" 
+                             class="card-img-top" 
+                             alt="{{ product.title }}" 
+                             style="height: 200px; object-fit: cover;"
+                             onerror="this.src='https://via.placeholder.com/300x300/6c757d/ffffff?text=Produto'">
                         {% if product.discount > 0 %}
                             <span class="position-absolute top-0 start-0 badge bg-danger m-2">
                                 -{{ product.discount }}%

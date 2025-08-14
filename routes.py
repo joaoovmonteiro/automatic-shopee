@@ -87,7 +87,16 @@ def refresh_products():
     """Refresh products from Shopee"""
     try:
         new_products = shopee_service.fetch_trending_products()
-        flash(f'Successfully added {len(new_products)} new products!', 'success')
+        
+        # Update existing products with new image URLs
+        existing_products = Product.query.filter_by(is_active=True).all()
+        for product in existing_products:
+            if not product.image_url or 'placeholder' in product.image_url:
+                category_num = hash(product.shopee_id) % 100
+                product.image_url = shopee_service.get_product_image_url(product.category, category_num)
+        
+        db.session.commit()
+        flash(f'Successfully added {len(new_products)} new products and updated existing ones!', 'success')
     except Exception as e:
         logger.error(f"Error refreshing products: {e}")
         flash('Error refreshing products. Please try again.', 'error')
