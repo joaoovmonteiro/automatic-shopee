@@ -102,7 +102,7 @@ class ShopeeService:
                     'sold_count': random.randint(100, 5000),
                     'image_url': self.get_product_image_url(template['category'], i+1),
                     'product_url': f"https://shopee.com.br/product/{shopee_id}",
-                    'affiliate_link': self.generate_affiliate_link(shopee_id)
+                    'affiliate_link': f"https://shopee.com.br/product/{shopee_id}?af=affiliate&ref=partner"
                 }
                 
                 # Create and save product
