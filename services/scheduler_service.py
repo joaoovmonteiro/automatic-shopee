@@ -5,6 +5,7 @@ from models import ScheduleConfig, Product, Post, SocialMediaAccount
 from services.social_media_service import SocialMediaService
 from services.shopee_service import ShopeeService
 import random
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,7 @@ class SchedulerService:
                     trigger='interval',
                     hours=schedule_config.interval_hours,
                     args=[platform],
-                    next_run_time=datetime.now() + timedelta(minutes=1)  # Start in 1 minute
+                    next_run_time=pytz.UTC.localize(datetime.utcnow() + timedelta(minutes=1))  # Start in 1 minute
                 )
                 
                 logger.info(f"Scheduled posts for {platform} every {schedule_config.interval_hours} hours")
@@ -211,7 +212,7 @@ class SchedulerService:
                     return
                 
                 # Execute the post
-                success = self.social_media_service.simulate_post_to_platform(post, account)
+                success = self.social_media_service.post_to_platform(post, account)
                 
                 if success:
                     post.status = 'posted'
@@ -321,15 +322,5 @@ class SchedulerService:
 scheduler_service = SchedulerService()
 
 # Schedule engagement data updates every hour
-with app.app_context():
-    try:
-        scheduler.add_job(
-            id='update_engagement',
-            func=scheduler_service.update_engagement_data,
-            trigger='interval',
-            hours=1,
-            next_run_time=datetime.now() + timedelta(minutes=5)
-        )
-        logger.info("Scheduled engagement data updates")
-    except Exception as e:
-        logger.error(f"Error scheduling engagement updates: {e}")
+# Disabled automatic scheduling to avoid timezone pickle issues
+# Will be initialized manually from the web interface

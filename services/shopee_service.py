@@ -330,7 +330,7 @@ class ShopeeService:
                     'sold_count': random.randint(100, 5000),
                     'image_url': self.get_product_specific_image(title, template['category'], i+1),
                     'product_url': f"https://shopee.com.br/product/{shopee_id}",
-                    'affiliate_link': f"https://shopee.com.br/product/{shopee_id}?af=affiliate&ref=partner"
+                    'affiliate_link': self.generate_affiliate_link(shopee_id)
                 }
                 
                 # Create and save product
@@ -350,15 +350,18 @@ class ShopeeService:
     def generate_affiliate_link(self, shopee_id):
         """Generate affiliate link for a product"""
         try:
-            affiliate_config = AffiliateConfig.query.first()
-            if not affiliate_config or not affiliate_config.affiliate_id:
-                return f"https://shopee.com.br/product/{shopee_id}"
-            
-            base_url = affiliate_config.base_affiliate_url.rstrip('/')
-            affiliate_id = affiliate_config.affiliate_id
+            # Get affiliate ID from environment variables
+            affiliate_id = os.environ.get("SHOPEE_AFFILIATE_ID")
+            if not affiliate_id:
+                # Fallback to database config
+                affiliate_config = AffiliateConfig.query.first()
+                if affiliate_config and affiliate_config.affiliate_id:
+                    affiliate_id = affiliate_config.affiliate_id
+                else:
+                    return f"https://shopee.com.br/product/{shopee_id}"
             
             # Generate affiliate link with tracking parameters
-            affiliate_link = f"{base_url}/product/{shopee_id}?af={affiliate_id}&pid=partner&c=affiliate"
+            affiliate_link = f"https://shopee.com.br/product/{shopee_id}?af={affiliate_id}&pid=partner&c=affiliate"
             
             return affiliate_link
             
